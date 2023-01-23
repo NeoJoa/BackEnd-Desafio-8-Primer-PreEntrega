@@ -1,5 +1,5 @@
 import fs from "fs";
-import ProductManager from "./ProductManager.js";
+import ProductManager from "./productManager.js";
 const pm = new ProductManager();
 export default class CartsManager {
   constructor() {

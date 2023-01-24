@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 
 const app = express();
 const httpServer = app.listen(8080, () =>
-  console.log("app lista en puerto", 8080)
+  console.log("app listen on port", 8080)
 );
 export const io = new Server(httpServer);
 

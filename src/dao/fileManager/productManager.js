@@ -1,8 +1,7 @@
 import fs from "fs";
-
 export default class ProductManager {
   constructor() {
-    this.path = "src/productBase.json";
+    this.path = "src/dao/fileManager/productBase.json";
   }
 
   async getProducts(limit) {
@@ -77,7 +76,7 @@ export default class ProductManager {
         return json;
       }
     } else {
-      return { status: 400, error: "Faltan valores en la solicitud" };
+      return { status: 400, error: "Faltan valores pedidos" };
     }
   }
 
@@ -90,7 +89,7 @@ export default class ProductManager {
       } else {
         return {
           status: 404,
-          error: "No se encontro un producto con este ID",
+          error: "No se encontro el producto con este ID",
         };
       }
     } else {
@@ -116,16 +115,16 @@ export default class ProductManager {
           } else {
             return {
               status: 400,
-              error: "No es posible cambiar el ID del producto",
+              error: "No es posible cambiar el ID de este producto",
             };
           }
         } else {
-          return { status: 400, error: "Faltan valores en la solicitud" };
+          return { status: 400, error: "Faltan valores pedidos" };
         }
       } else {
         return {
           status: "404",
-          error: "No se encontro un producto con este ID",
+          error: "No se encontro el producto con este ID",
         };
       }
     } else {
@@ -142,18 +141,18 @@ export default class ProductManager {
           const productIndex = json.findIndex((product) => product.id === id);
           json.splice(productIndex, 1);
           await this.writeFile(json);
-          return { status: "Ok", message: "Producto eliminado exitosamente" };
+          return { status: "Ok", message: "Producto borrado exitosamente" };
         } else {
           return {
             status: 404,
-            error: "No se encontro un producto con este ID",
+            error: "No se encontro el producto con este ID",
           };
         }
       } else {
         return json;
       }
     } else {
-      return { status: 400, error: "Faltan valores en la solicitud" };
+      return { status: 400, error: "Faltan valores pedidos" };
     }
   }
 

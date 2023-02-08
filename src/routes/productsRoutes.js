@@ -1,44 +1,11 @@
 import { Router } from "express";
-import ProductManager from "../models/productManager.js";
-import { io } from "../app.js";
+import dbProductManager from "../dao/dbManager/ProductsManager.js";
 
 const router = Router();
-const pm = new ProductManager();
 
-router.get("/api/products?", async (req, res) => {
-  const limit = +req.query.limit;
-  const response = await pm.getProducts(limit);
-  if (!response.error) {
-    res.render("index", { response });
-  } else {
-    res.status(response.status).send(response);
-  }
-});
+const dbpm = new dbProductManager();
 
-router.get("/api/realTimeProducts?", async (req, res) => {
-  const limit = +req.query.limit;
-  const response = await pm.getProducts(limit);
-  if (!response.error) {
-    io.on("connection", () => {
-      io.emit("products", response);
-    });
-    res.render("realTimeProducts", {});
-  } else {
-    res.status(response.status).send(response);
-  }
-});
-
-router.get("/api/products/:pid", async (req, res) => {
-  const id = +req.params.pid;
-  const response = await pm.getProductById(id);
-  if (!response.error) {
-    res.send(response);
-  } else {
-    res.status(response.status).send(response);
-  }
-});
-
-router.post("/api/products", async (req, res) => {
+router.post("/", async (req, res) => {
   const {
     title,
     description,
@@ -59,39 +26,49 @@ router.post("/api/products", async (req, res) => {
     category,
     thumbnails,
   };
-  const response = await pm.addProduct(product);
-  const products = await pm.getProducts();
-  if (!response.error) {
-    io.emit("products", products);
-    res.send(response);
-  } else {
-    res.status(response.status).send(response);
-  }
+
+  const addResponse = await dbpm.addProduct(product);
+
+  !addResponse.error
+    ? res.status(201).send(addResponse)
+    : res.status(addResponse.status).send(addResponse);
 });
 
-router.put("/api/products/:pid", async (req, res) => {
-  const id = +req.params.pid;
+router.get("/?", async (req, res) => {
+  const limit = +req.query.limit;
+  const getResponse = await dbpm.getProducts(limit);
+
+  !getResponse.error
+    ? res.status(200).json(getResponse)
+    : res.status(getResponse.status).send(getResponse);
+});
+
+router.get("/:pid", async (req, res) => {
+  const id = req.params.pid;
+  const getResponse = await dbpm.getProductById(id);
+
+  !getResponse.error
+    ? res.send(getResponse)
+    : res.status(getResponse.status).send(getResponse);
+});
+
+router.put("/:pid", async (req, res) => {
+  const id = req.params.pid;
   const object = req.body;
-  const response = await pm.updateProduct(id, object);
-  const products = await pm.getProducts();
-  if (!response.error) {
-    io.emit("products", products);
-    res.send(response);
-  } else {
-    res.status(response.status).send(response);
-  }
+  const updateResponse = await dbpm.updateProduct(id, object);
+
+  !updateResponse.error
+    ? res.send(updateResponse)
+    : res.status(updateResponse.status).send(updateResponse);
 });
 
-router.delete("/api/products/:pid", async (req, res) => {
-  const id = +req.params.pid;
-  const response = await pm.deleteProduct(id);
-  const products = await pm.getProducts();
-  if (!response.error) {
-    io.emit("products", products);
-    res.send(response);
-  } else {
-    res.status(response.status).send(response);
-  }
+router.delete("/:pid", async (req, res) => {
+  const id = req.params.pid;
+  const deleteResponse = await dbpm.deleteProduct(id);
+
+  !deleteResponse.error
+    ? res.send(deleteResponse)
+    : res.status(deleteResponse.status).send(deleteResponse);
 });
 
 export default router;

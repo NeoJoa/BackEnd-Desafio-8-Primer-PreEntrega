@@ -1,30 +1,30 @@
 import fs from "fs";
-import ProductManager from "./productManager.js";
+import ProductManager from "./productManager";
 const pm = new ProductManager();
 export default class CartsManager {
   constructor() {
     this.id = 0;
-    this.path = "src/cartBase.json";
+    this.path = "src/dao/fileManager/cartBase.json";
   }
 
   async addCart() {
-    const carts = await this.getCarts();
-    if (carts.error) {
-      return carts;
+    const json = await this.getCarts();
+    if (json.error) {
+      return json;
     }
-    let id = carts.length + 1;
-    const idFinded = carts.find((cart) => cart.id === id);
+    let id = json.length + 1;
+    const idFinded = json.find((cart) => cart.id === id);
     if (id === idFinded?.id) id++;
     const newCart = { id, products: [] };
-    carts.push(newCart);
-    return await this.writeFile(carts);
+    json.push(newCart);
+    return await this.writeFile(json);
   }
 
   async getCarts() {
     try {
       const document = await fs.promises.readFile(this.path);
-      const carts = JSON.parse(document);
-      return carts;
+      const json = JSON.parse(document);
+      return json;
     } catch (error) {
       return {
         status: 500,
@@ -35,24 +35,24 @@ export default class CartsManager {
   }
 
   async getCartById(id) {
-    const carts = await this.getCarts();
-    if (!carts.error) {
-      const cart = carts.find((cart) => cart.id === id);
+    const json = await this.getCarts();
+    if (!json.error) {
+      const cart = json.find((cart) => cart.id === id);
       if (cart) {
-        const cartIndex = carts.findIndex((cart) => cart.id === id);
+        const cartIndex = json.findIndex((cart) => cart.id === id);
         return { cart, cartIndex };
       } else {
-        return { status: 404, error: "No se encontro un carrito con este ID" };
+        return { status: 404, error: "No se encontro el carrito con este ID" };
       }
     } else {
-      return carts;
+      return json;
     }
   }
 
   async addProductToCart(cid, pid) {
-    const carts = await this.getCarts();
+    const json = await this.getCarts();
     const { cart, cartIndex } = await this.getCartById(cid);
-    if (!carts.error && !cart.error) {
+    if (!json.error && !cart.error) {
       const product = cart.products.find(
         (product) => product.productId === pid
       );
@@ -61,26 +61,26 @@ export default class CartsManager {
           (product) => product.productId === pid
         );
         product.quantity++;
-        carts[cartIndex].products.splice(productIndex, 1, product);
-        return await this.writeFile(carts);
+        json[cartIndex].products.splice(productIndex, 1, product);
+        return await this.writeFile(json);
       } else {
         const getProduct = await pm.getProductById(pid);
         if (!getProduct.error) {
-          carts[cartIndex].products.push({ productId: pid, quantity: 1 });
-          return await this.writeFile(carts);
+          json[cartIndex].products.push({ productId: pid, quantity: 1 });
+          return await this.writeFile(json);
         } else {
           return getProduct;
         }
       }
     } else {
-      return carts || cart;
+      return json || cart;
     }
   }
 
   async removeToCart(cid, pid) {
-    const carts = await this.getCarts();
+    const json = await this.getCarts();
     const { cart, cartIndex } = await this.getCartById(cid);
-    if (!carts.error && !cart.error) {
+    if (!json.error && !cart.error) {
       const product = cart.products.find(
         (product) => product.productId === pid
       );
@@ -88,8 +88,8 @@ export default class CartsManager {
         const productIndex = cart.products.findIndex(
           (product) => product.productId === pid
         );
-        carts[cartIndex].products.splice(productIndex, 1);
-        await this.writeFile(carts);
+        json[cartIndex].products.splice(productIndex, 1);
+        await this.writeFile(json);
         return {
           status: "Ok",
           message: "Producto removido del carrito exitosamente",
@@ -97,11 +97,11 @@ export default class CartsManager {
       } else {
         return {
           status: 404,
-          error: "No se encontro un producto con este ID en este carrito",
+          error: "No se encontro el producto con  este ID en este carrito",
         };
       }
     } else {
-      return carts || cart;
+      return json || cart;
     }
   }
 
